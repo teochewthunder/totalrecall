@@ -1,0 +1,522 @@
+<!DOCTYPE html>
+<html>
+	<head>
+		<title>Total Recall</title>
+
+		<style>
+			div { outline: 0px solid #FF0000;}
+
+			#trApp
+			{
+				width: 700px;
+				margin: 0 auto 0 auto;
+				padding: 10px;
+				font-family: Impact;
+				font-size: 12px;
+				background-color: #000000;
+				-webkit-box-shadow: 10px 10px 5px 0px rgba(0,0,0,0.75);
+				-moz-box-shadow: 10px 10px 5px 0px rgba(0,0,0,0.75);
+				box-shadow: 10px 10px 5px 0px rgba(0,0,0,0.75);
+			}
+
+			#titleContainer
+			{
+				width: 100%;
+				height: 100px;
+			}
+
+			#logoContainer
+			{
+				width: 30%;
+				height: 100%;
+				float: left;
+				background: url(img/logo_tr.png) left top no-repeat;
+				background-size: contain;
+			}
+
+			#progressContainer
+			{
+				width: 40%;
+				height: 100%;
+				float: right;
+				font-size: 1.5em;
+				text-transform: uppercase;
+				color: #FF0000;
+			}
+
+			#timeContainer
+			{
+				width: 30%;
+				height: 100%;
+				float: right;
+				text-align: center;
+				color: #DDDDDD;
+				font-size: 1.5em;
+			}
+
+			#inputCodeContainer
+			{
+				width: 100%;
+				height: 50px;
+				padding: 20px 0 20px 0;
+				margin: 10px 0 10px 0;
+				text-align: center;			
+			}
+
+			.inputCode
+			{
+				display: inline-block;
+				width: 50px;
+				height: 100%;
+				color: #FF0000;
+				font-size: 3em;
+ 				text-shadow: 0 0 10px #FFFFFF, 0 0 20px #FFFFFF, 0 0 30px #FFFFFF;
+			}
+
+			#recallContainer
+			{
+				width: 100%;
+			}
+
+			#panelButtonContainer
+			{
+				width: 50%;
+				height: 310px;
+				float: left;
+			}
+
+			.panelButton
+			{
+				width: 100px;
+				height: 100px;
+				margin: 0 5px 5px 0;
+				float: left;
+				cursor: pointer;
+				color: #DDDDDD;
+				outline: 1px solid #DDDDDD;
+				font-size: 6em;
+				text-align: center;
+				-webKit-transition: all 1s;
+				transition: all 0.5s;
+			}
+
+			.panelButton:hover
+			{
+				color: #FF0000;
+				background-color: rgba(255, 0, 0, 0.5);
+			}
+
+			.lightup
+			{
+				text-shadow: 0 0 10px #FFFFFF, 0 0 20px #FFFFFF, 0 0 30px #FFFFFF;
+			}
+
+			#imageContainer
+			{
+				width: 50%;
+				height: 310px;
+				float: right;
+				outline: 1px solid #DDDDDD;
+				background-size: cover;
+				background-position: 50% 50%;
+				background-repeat: no-repeat;
+			}
+
+			.overlay
+			{
+				width: 100%;
+				height: 100%; 
+				background-color: rgba(0, 0, 0, 0.8);
+				color: #FFFFFF;
+				font-size: 3em;
+			}
+
+			.hidden
+			{
+				display: none;
+			}
+
+			.message
+			{
+				width: 100%;
+				height: 100%;
+				text-align: center;
+				color: #FF0000;
+				font-size: 3em;
+ 				text-shadow: 0 0 10px #FFFFFF, 0 0 20px #FFFFFF, 0 0 30px #FFFFFF;
+			}
+
+			button
+			{
+				width: 5em;
+				height: 2em;
+				padding: 0.5em;
+				cursor: pointer;
+				background-color: #DDDDDD;
+				color: #000000;
+				border: 0px solid red;
+			}
+
+			button:hover
+			{
+				background-color: #444444;
+				color: #FFFFF;
+			}
+		</style>
+	</head>
+
+	<body>
+		<div id="trApp">
+			<div id="titleContainer">
+				<div id="logoContainer">
+
+				</div>
+
+				<div id="timeContainer">
+					{{seconds}} <br /><small>seconds remaining</small>
+					<br /><br />
+					<button v-on:click="reset" v-bind:class="(status == 'begin' ? 'hidden' : '')">{{btnText}}</button>
+					<button v-on:click="play" v-bind:class="(status == 'begin' ? '' : 'hidden')">BEGIN</button>
+				</div>
+
+				<div id="progressContainer">
+					<table>
+						<tr>
+							<td>Level</td>
+							<td>:</td>
+							<td>{{level}}</td>
+						</tr>
+						<tr>
+							<td>Stage</td>
+							<td>:</td>
+							<td>{{stage}}</td>
+						</tr>
+						<tr>
+							<td>&nbsp;</td>
+							<td>&nbsp;</td>
+							<td>&nbsp;</td>
+						</tr>	
+						<tr>
+							<td>Points</td>
+							<td>:</td>
+							<td>{{points}}</td>
+						</tr>		
+					</table>
+				</div>				
+			</div>
+
+			<div id="inputCodeContainer">
+				<div v-bind:class="(message == '' ? 'inputCode' : 'hidden')" v-for="inputCode in enteredCode">
+					{{ config.panelButtons[inputCode].display }}
+				</div>
+
+				<div v-bind:class="(message == '' ? 'hidden' : 'message')">
+					{{ message }}
+				</div>
+			</div>
+
+			<div class="recallContainer">
+				<div id="panelButtonContainer">
+					<div v-bind:class="'panelButton ' + (lightup == panelButton.id ? 'lightup' : '')" v-for="panelButton in config.panelButtons" v-bind:data-id="panelButton.id" v-on:click="enterCode">
+						{{panelButton.display}}
+					</div>
+				</div>
+
+				<div id="imageContainer" v-bind:style="'background-image:url(img/' + getStatusImageName() + '.jpg'">
+					<div id="scoreContainer" v-bind:class="(status == 'stageComplete' || status == 'victory'? 'overlay' : 'hidden')">
+						<table>
+							<tr>
+								<td>Level</td>
+								<td>:</td>
+								<td>{{score.level}}</td>
+							</tr>
+							<tr>
+								<td>Stage</td>
+								<td>:</td>
+								<td>{{score.stage}}</td>
+							</tr>
+							<tr>
+								<td>Time</td>
+								<td>:</td>
+								<td>{{score.time}}</td>
+							</tr>	
+							<tr>
+								<td>Total</td>
+								<td>:</td>
+								<td>{{score.total}}</td>
+							</tr>
+							<tr v-bind:class="(status == 'stageComplete' ? '' : 'hidden')">
+								<td></td>
+								<td></td>
+								<td><button v-on:click="progressStage">NEXT</button></td>
+							</tr>
+						</table>
+					</div>
+				</div>
+			</div>
+
+			<br style="clear:both" />
+		</div>
+
+		<script src="https://unpkg.com/vue/dist/vue.js"></script>
+
+		<script>
+			var app = new Vue
+			(
+				{
+					el: "#trApp",
+					data:
+					{
+						timer: undefined,
+						seconds: 0, 
+						btnText: "RESET",
+						message: "",
+						enteredCode: [],
+						code: [],
+						level: 1,
+						stage: 1,
+						points: 0,
+						lightup: null,
+						status: "",
+						score: 
+						{
+							level: 0,
+							stage: 0,
+							time: 0,
+							total: 0
+						},
+						config: 
+						{
+							secondsPerStage: 20,
+							stagesPerLevel: 3,
+							levels: 5,
+							codeLength: 2,
+							delay: 500,
+							delayPerStage: 100,
+							points: 
+							{
+								stage: 1000,
+								level: 100,
+								time: 100
+							},
+							panelButtons: 
+							[
+								{ id: 0, display: "♆"},
+								{ id: 1, display: "♃"},
+								{ id: 2, display: "♄"},
+								{ id: 3, display: "♅"},
+								{ id: 4, display: "♇"},
+								{ id: 5, display: "♁"},
+								{ id: 6, display: "☿"},
+								{ id: 7, display: "☽"},
+								{ id: 8, display: "☼"}
+							]
+						}
+					},
+					methods:
+					{
+						reset: function()
+						{
+							this.stopTimer();
+							this.seconds = this.config.secondsPerStage;
+							this.btnText = "RESET";
+							this.enteredCode = [];							
+							this.level = 1;
+							this.stage = 1;
+							this.points = 0;
+							this.message = "Match the codes shown!";
+							this.status = "begin";
+						},
+						play: function ()
+						{
+							this.seconds = this.config.secondsPerStage;
+							this.enteredCode = [];
+							this.message = "";
+
+							this.code = this.generateCode();
+							this.displayCode(this.code);
+						},
+						startTimer: function()
+						{
+							if (this.timer == undefined)
+							{
+								this.timer = setInterval
+								(
+									() => 
+									{
+										this.seconds = this.seconds - 1;
+
+										if (this.seconds == 0)
+										{
+											this.stopTimer();
+											this.btnText = "REPLAY";
+
+											this.status = "gameover";
+											this.message = "GAME OVER";
+										}
+									},
+									1000
+								);
+							}
+						},
+						stopTimer: function()
+						{
+							clearInterval(this.timer);
+							this.timer = undefined;
+							this.seconds = this.config.secondsPerStage;
+						},
+						enterCode: function(e)
+						{
+							if (this.timer == undefined) return;
+
+							var enteredCode = e.target.dataset.id;
+							var index = this.enteredCode.length;
+
+							if (enteredCode == this.code[index])
+							{
+								this.enteredCode.push(enteredCode);
+
+								if (this.enteredCode.length == this.code.length)
+								{
+									if (this.stage == this.config.stagesPerLevel && this.level == this.config.levels)
+									{
+										this.stopTimer();
+										this.btnText = "REPLAY";
+
+										this.status = "victory";
+										this.message = "VICTORY! YOU HAVE SAVED MARS!";
+									}
+									else
+									{
+										this.status = "stageComplete";
+										this.message = "STAGE COMPLETE";
+
+										//calcuate scores
+										this.score.level = (this.stage == this.config.stagesPerLevel ? this.config.points.level * this.level : 0);
+										this.score.stage = this.config.points.stage * this.stage;
+										this.score.time = this.config.points.time * this.seconds;
+
+										this.score.total = this.score.level + this.score.stage + this.score.time;
+										this.points += this.score.total;
+
+										this.stopTimer();
+									}
+								}
+							}
+						},
+						progressStage: function()
+						{
+							if (this.stage == this.config.stagesPerLevel)
+							{
+								if (this.level < this.config.levels)
+								{
+									this.level++;
+									this.stage = 1;
+								}
+							}
+							else
+							{
+								this.stage++;
+							}
+
+							this.play();
+						},
+						generateCode: function()
+						{
+							var calculatedCodeLength = this.config.codeLength + this.level;
+
+							generatedCode = [];
+
+							for (var i = 0; i < calculatedCodeLength; i++)
+							{
+								var randomIndex = this.generateRandomNo(0, this.config.panelButtons.length);
+								generatedCode.push(this.config.panelButtons[randomIndex].id);
+							}
+
+							return generatedCode;
+						},
+						generateRandomNo: function(min, max)
+						{
+							return Math.floor(Math.random() * max) + min;
+						},
+						calculateLevelBonus: function()
+						{
+							if (this.stage == 3)
+							{
+								return this.config.points.level;
+							}
+							else
+							{
+								return 0;
+							}
+						},
+						calculateStageBonus: function()
+						{
+							return this.stage * this.config.points.stage;
+						},
+						calculateTimeBonus: function()
+						{
+							return this.seconds * this.config.points.time;
+						},
+						displayCode: function(code, index = 0)
+						{
+							this.status = "loading";
+
+							var calculatedDelay = this.config.delay - (this.stage * this.config.delayPerStage);
+							this.stopTimer();
+
+							var codeId = code[index];
+
+							this.status = "loading";
+							this.message = "LOADING REKALL..."
+
+							setTimeout
+							(
+								() => 
+								{
+									this.lightup = codeId;
+
+									setTimeout
+									(
+										() => 
+										{
+											this.lightup = null;
+
+											if (index < code.length - 1)
+											{
+												this.displayCode(code, index + 1);
+											}
+											else
+											{
+												this.status = "loading";
+												this.message = ""
+												this.startTimer();
+											}
+										},
+										calculatedDelay
+									)
+								},
+								calculatedDelay
+							);																
+						},					
+						getStatusImageName: function()
+						{
+							if (this.status == "victory" || this.status == "gameover" || this.status == "begin")
+							{
+								return "status_" + this.status;
+							}
+							else
+							{
+								return "level_" + this.level;
+							}
+						}
+					},
+					created: function()
+					{
+						this.reset();
+					}
+				}
+			);
+		</script>
+	</body>
+</html>
