@@ -55,6 +55,20 @@
 				font-size: 1.5em;
 			}
 
+			.blinkOn
+			{
+				color: rgba(255, 0, 0, 0.5);
+				-webKit-transition: all 0.5s;
+				transition: all 0.5s;
+			}
+
+			.blinkOff
+			{
+				color: rgba(255, 0, 0, 1);
+				-webKit-transition: all 0.5s;
+				transition: all 0.5s;
+			}
+
 			#inputCodeContainer
 			{
 				width: 100%;
@@ -98,7 +112,7 @@
 				font-size: 6em;
 				text-align: center;
 				-webKit-transition: all 1s;
-				transition: all 0.5s;
+				transition: all 1s;
 			}
 
 			.panelButton:hover
@@ -174,7 +188,11 @@
 				</div>
 
 				<div id="timeContainer">
-					{{seconds}} <br /><small>seconds remaining</small>
+					<div v-bind:class="(timer == undefined ? 'hidden' : '')">
+						<span v-bind:class="(seconds <= 10 ? (seconds % 2 == 0 ? 'blinkOn' : 'blinkOff') : '')">
+							{{seconds}} <br /><small>seconds remaining</small>
+						</span>
+					</div>
 					<br /><br />
 					<button v-on:click="reset" v-bind:class="(status == 'begin' ? 'hidden' : '')">{{btnText}}</button>
 					<button v-on:click="play" v-bind:class="(status == 'begin' ? '' : 'hidden')">BEGIN</button>
@@ -292,8 +310,8 @@
 							stagesPerLevel: 3,
 							levels: 5,
 							codeLength: 2,
-							delay: 500,
-							delayPerStage: 100,
+							delay: 800,
+							delayPerStage: 150,
 							points: 
 							{
 								stage: 1000,
